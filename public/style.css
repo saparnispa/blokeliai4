@@ -1,0 +1,180 @@
+/* Global Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Game Container */
+.game-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Game Header */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-header h1 {
+    color: #00f3ff;
+    font-size: 2.5em;
+    margin: 0 0 15px;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+}
+
+.queue-status {
+    font-size: 1.2em;
+    color: #aaa;
+}
+
+/* Game Area */
+.game-area {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+}
+
+#tetrisCanvas {
+    border: 2px solid #00f3ff;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Game Info */
+.game-info {
+    background-color: rgba(0, 243, 255, 0.1);
+    padding: 25px;
+    border-radius: 12px;
+    min-width: 250px;
+    border: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.info-item {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.info-item h2 {
+    color: #00f3ff;
+    margin: 0 0 10px;
+    font-size: 1.5em;
+}
+
+.info-item p {
+    font-size: 1.8em;
+    margin: 0;
+    color: #fff;
+}
+
+.next-piece {
+    margin-bottom: 25px;
+}
+
+.next-piece h2 {
+    color: #00f3ff;
+    margin: 0 0 10px;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+#nextPieceCanvas {
+    display: block;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+/* Navigation */
+.navigation {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.nav-button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #00f3ff;
+    color: #000;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: #fff;
+    transform: scale(1.05);
+}
+
+/* Controls Page */
+.controls-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.controls-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.controls-info {
+    background-color: rgba(0, 243, 255, 0.1);
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.controls-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.controls-list li {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-area {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-info {
+        width: 100%;
+        max-width: 400px;
+        margin-top: 20px;
+    }
+    
+    #tetrisCanvas {
+        max-width: 100%;
+        height: auto;
+    }
+}

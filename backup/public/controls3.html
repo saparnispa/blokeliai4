@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tetris 3 Valdymas</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="controls-body">
+    <div id="initial-prompt" class="modal">
+        <h2>Ar norite stoti į eilę ir laukti žaidimo pradžios?</h2>
+        <div class="button-group">
+            <button id="join-queue-btn">Taip, stoti į eilę</button>
+            <button id="show-scores-btn">Ne, rodyti rezultatus</button>
+        </div>
+    </div>
+
+    <div id="game-status">
+        <h2>Žaidimas #3</h2>
+        <h3>Jūsų eilės numeris: <span id="player-position"></span></h3>
+        <div id="timer" class="hidden">
+            <h3>Laikas pradėti: <span id="countdown">20</span>s</h3>
+        </div>
+    </div>
+    
+    <div id="game-info" class="hidden">
+        <div id="score-display">Taškai: <span id="current-score">0</span></div>
+        <div id="level-display">Lygis: <span id="current-level">1</span></div>
+    </div>
+
+    <div id="controls" class="hidden">
+        <div class="control-group">
+            <button id="rotate-btn" class="control-btn">↻</button>
+        </div>
+        <div class="control-group">
+            <button id="left-btn" class="control-btn">←</button>
+            <button id="down-btn" class="control-btn">↓</button>
+            <button id="right-btn" class="control-btn">→</button>
+        </div>
+    </div>
+
+    <button id="startButton" class="hidden">Pradėti žaidimą</button>
+    <div id="waiting-message" class="hidden">
+        Laukiama eilėje...
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        window.gameId = 3;
+    </script>
+    <script src="/controls.js"></script>
+</body>
+</html>

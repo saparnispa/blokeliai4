@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tetris Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        window.gameId = 1;
+        window.gridConfig = {
+            rows: 35,    // Vertical cells
+            cols: 10     // Horizontal cells
+        };
+    </script>
+    <script src="tetris.js"></script>
+</head>
+<body>
+    <canvas id="tetrisCanvas"></canvas>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tetris Valdymas</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="controls-select-body">
+    <div class="controls-select-container">
+        <h1>Kūrį tetrį žaisi?</h1>
+        <div class="controls-info">
+            <p>Pasirink kurį tetrį žaisi ir stok į eilę.</p>
+        </div>
+        <div class="controls-grid">
+            <a href="/controls1.html" class="control-select-btn">
+                <h2>Tetris 1</h2>
+                <div class="queue-count" id="queue-1">0 laukia</div>
+            </a>
+            <a href="/controls2.html" class="control-select-btn">
+                <h2>Tetris 2</h2>
+                <div class="queue-count" id="queue-2">0 laukia</div>
+            </a>
+            <a href="/controls3.html" class="control-select-btn">
+                <h2>Tetris 3</h2>
+                <div class="queue-count" id="queue-3">0 laukia</div>
+            </a>
+            <a href="/controls4.html" class="control-select-btn">
+                <h2>Tetris 4</h2>
+                <div class="queue-count" id="queue-4">0 laukia</div>
+            </a>
+        </div>
+        <a href="/scores.html" class="scores-link">Žiūrėti rezultatus</a>
+    </div>
+
+    <script>
+        const socket = io();
+        
+        socket.on('queueUpdate', (queueCounts) => {
+            for (let gameId in queueCounts) {
+                const count = queueCounts[gameId];
+                const queueElement = document.getElementById(`queue-${gameId}`);
+                if (queueElement) {
+                    queueElement.textContent = `${count} laukia`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

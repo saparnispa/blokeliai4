@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tetris - Valdymas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        .queue-status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .keyboard-controls {
+            display: none;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .btn {
+            background: rgba(51, 51, 51, 0.8);
+            border: none;
+            color: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            touch-action: manipulation;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .btn:active {
+            background: rgba(85, 85, 85, 0.9);
+            transform: scale(0.95);
+        }
+
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-rotate { grid-column: 2; grid-row: 1; }
+        .btn-drop { grid-column: 2; grid-row: 3; }
+
+        @media (min-width: 768px) {
+            .keyboard-controls {
+                display: block;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .keyboard-controls h2 {
+                margin-bottom: 10px;
+            }
+            .keyboard-controls ul {
+                list-style: none;
+            }
+            .keyboard-controls li {
+                margin: 5px 0;
+            }
+            .buttons {
+                display: none;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .btn {
+                padding: 15px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="queue-status">
+        <p>Žaidėjų eilėje: <span id="queue-count">0</span></p>
+        <p>Jūsų vieta: <span id="queue-position">-</span></p>
+    </div>
+    
+    <div class="controls">
+        <div class="keyboard-controls">
+            <h2>Klaviatūros valdymas:</h2>
+            <ul>
+                <li>⬅️ Kairėn</li>
+                <li>➡️ Dešinėn</li>
+                <li>⬇️ Žemyn</li>
+                <li>⬆️ Pasukti</li>
+                <li>Tarpas - Numesti</li>
+            </ul>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn btn-left" id="left" aria-label="Kairėn">⬅️</button>
+            <button class="btn btn-right" id="right" aria-label="Dešinėn">➡️</button>
+            <button class="btn btn-down" id="down" aria-label="Žemyn">⬇️</button>
+            <button class="btn btn-rotate" id="rotate" aria-label="Pasukti">⟳</button>
+            <button class="btn btn-drop" id="drop" aria-label="Numesti">⏬</button>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/controls.js"></script>
+</body>
+</html>

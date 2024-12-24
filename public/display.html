@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #000;
+        }
+        canvas {
+            border: 2px solid #333;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/display.js"></script>
+</head>
+<body>
+    <canvas id="tetrisCanvas"></canvas>
+</body>
+</html>

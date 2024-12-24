@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Light Installation</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <script src="/display.js"></script>
+</head>
+<body class="display-body">
+    <div class="games-container">
+        <div class="game-wrapper">
+            <div class="game-header">
+                <h2>Žaidimas #1</h2>
+                <div class="queue-info">Žaidėjų eilėje: <span id="queue-count1">0</span></div>
+            </div>
+            <div class="game-content">
+                <canvas id="tetrisCanvas1" width="300" height="600"></canvas>
+                <div class="game-sidebar">
+                    <div id="qrcode1" class="qr-code"></div>
+                    <div id="config-panel1" class="config-panel">
+                        <h3>Nustatymai</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-wrapper">
+            <div class="game-header">
+                <h2>Žaidimas #2</h2>
+                <div class="queue-info">Žaidėjų eilėje: <span id="queue-count2">0</span></div>
+            </div>
+            <div class="game-content">
+                <canvas id="tetrisCanvas2" width="300" height="600"></canvas>
+                <div class="game-sidebar">
+                    <div id="qrcode2" class="qr-code"></div>
+                    <div id="config-panel2" class="config-panel">
+                        <h3>Nustatymai</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-wrapper">
+            <div class="game-header">
+                <h2>Žaidimas #3</h2>
+                <div class="queue-info">Žaidėjų eilėje: <span id="queue-count3">0</span></div>
+            </div>
+            <div class="game-content">
+                <canvas id="tetrisCanvas3" width="300" height="600"></canvas>
+                <div class="game-sidebar">
+                    <div id="qrcode3" class="qr-code"></div>
+                    <div id="config-panel3" class="config-panel">
+                        <h3>Nustatymai</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-wrapper">
+            <div class="game-header">
+                <h2>Žaidimas #4</h2>
+                <div class="queue-info">Žaidėjų eilėje: <span id="queue-count4">0</span></div>
+            </div>
+            <div class="game-content">
+                <canvas id="tetrisCanvas4" width="300" height="600"></canvas>
+                <div class="game-sidebar">
+                    <div id="qrcode4" class="qr-code"></div>
+                    <div id="config-panel4" class="config-panel">
+                        <h3>Nustatymai</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
