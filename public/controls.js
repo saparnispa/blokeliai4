@@ -63,8 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'left': 'moveLeft',
         'right': 'moveRight',
         'down': 'moveDown',
-        'rotate': 'rotate',
-        'drop': 'drop'
+        'rotate': 'rotate'
     };
 
     Object.entries(actionMap).forEach(([id, action]) => {
@@ -128,9 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'ArrowUp':
                 action = 'rotate';
-                break;
-            case ' ':
-                action = 'drop';
                 break;
         }
         
