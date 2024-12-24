@@ -22,22 +22,22 @@ let currentGame = {
     score: 0,
     level: 1,
     lines: 0,
-    dropSpeed: 1000 // Starting speed in milliseconds
+    dropSpeed: 500 // Starting speed in milliseconds
 };
 
 // Game intervals
 let dropInterval = null;
 const DROP_SPEEDS = {
-    1: 1000,    // Level 1: 1.0 seconds
-    2: 850,     // Level 2: 0.85 seconds
-    3: 700,     // Level 3: 0.7 seconds
-    4: 600,     // Level 4: 0.6 seconds
-    5: 500,     // Level 5: 0.5 seconds
-    6: 400,     // Level 6: 0.4 seconds
-    7: 300,     // Level 7: 0.3 seconds
-    8: 200,     // Level 8: 0.2 seconds
-    9: 150,     // Level 9: 0.15 seconds
-    10: 100     // Level 10: 0.1 seconds
+    1: 500,     // Level 1: 0.5 seconds
+    2: 450,     // Level 2: 0.45 seconds
+    3: 400,     // Level 3: 0.4 seconds
+    4: 350,     // Level 4: 0.35 seconds
+    5: 300,     // Level 5: 0.3 seconds
+    6: 250,     // Level 6: 0.25 seconds
+    7: 200,     // Level 7: 0.2 seconds
+    8: 150,     // Level 8: 0.15 seconds
+    9: 100,     // Level 9: 0.1 seconds
+    10: 50      // Level 10: 0.05 seconds
 };
 
 const LINES_PER_LEVEL = 10; // Number of lines needed to level up
@@ -264,6 +264,10 @@ function updateQueue() {
 }
 
 // Middleware
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'controls.html'));
+});
+
 app.use(compression());
 app.use(express.static('public'));
 
