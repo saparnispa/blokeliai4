@@ -21,23 +21,27 @@ let currentGame = {
     currentY: 0,
     score: 0,
     level: 1,
-    lines: 0
+    lines: 0,
+    dropSpeed: 1000 // Starting speed in milliseconds
 };
 
 // Game intervals
 let dropInterval = null;
 const DROP_SPEEDS = {
-    1: 1000,    // 1 second
-    2: 900,     // 0.9 seconds
-    3: 800,     // 0.8 seconds
-    4: 700,     // 0.7 seconds
-    5: 600,     // 0.6 seconds
-    6: 500,     // 0.5 seconds
-    7: 400,     // 0.4 seconds
-    8: 300,     // 0.3 seconds
-    9: 200,     // 0.2 seconds
-    10: 100     // 0.1 seconds
+    1: 1000,    // Level 1: 1.0 seconds
+    2: 850,     // Level 2: 0.85 seconds
+    3: 700,     // Level 3: 0.7 seconds
+    4: 600,     // Level 4: 0.6 seconds
+    5: 500,     // Level 5: 0.5 seconds
+    6: 400,     // Level 6: 0.4 seconds
+    7: 300,     // Level 7: 0.3 seconds
+    8: 200,     // Level 8: 0.2 seconds
+    9: 150,     // Level 9: 0.15 seconds
+    10: 100     // Level 10: 0.1 seconds
 };
+
+const LINES_PER_LEVEL = 10; // Number of lines needed to level up
+const MAX_LEVEL = 10;
 
 // Tetris pieces
 const TETROMINOES = [
@@ -95,46 +99,33 @@ function clearLines() {
             row++; // Check the same row again
         }
     }
+    
     if (linesCleared > 0) {
+        // Update score based on number of lines cleared and current level
+        const scoreMultiplier = [0, 100, 300, 500, 800]; // Bonus for multiple lines
+        currentGame.score += scoreMultiplier[linesCleared] * currentGame.level;
         currentGame.lines += linesCleared;
-        currentGame.score += linesCleared * 100 * currentGame.level;
-        const newLevel = Math.floor(currentGame.lines / 10) + 1;
         
-        // Update drop speed if level changed
-        if (newLevel !== currentGame.level && newLevel <= 10) {
+        // Calculate new level
+        const newLevel = Math.min(Math.floor(currentGame.lines / LINES_PER_LEVEL) + 1, MAX_LEVEL);
+        
+        // If level changed, update drop speed
+        if (newLevel !== currentGame.level) {
             currentGame.level = newLevel;
+            currentGame.dropSpeed = DROP_SPEEDS[newLevel];
+            
+            // Update drop interval
             if (dropInterval) {
                 clearInterval(dropInterval);
-                dropInterval = setInterval(() => {
-                    if (currentGame.currentPiece) {
-                        if (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
-                            currentGame.currentY++;
-                            io.emit('updateGame', currentGame);
-                        } else {
-                            freezePiece();
-                            clearLines();
-                            currentGame.currentPiece = currentGame.nextPiece;
-                            currentGame.nextPiece = createPiece();
-                            currentGame.currentX = 3;
-                            currentGame.currentY = 0;
-                            
-                            if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
-                                if (currentPlayer) {
-                                    io.to(currentPlayer).emit('gameEnd');
-                                    currentGame.currentPiece = null;
-                                    currentGame.nextPiece = null;
-                                    if (dropInterval) {
-                                        clearInterval(dropInterval);
-                                        dropInterval = null;
-                                    }
-                                    currentPlayer = null;
-                                    updateQueue();
-                                }
-                            }
-                            io.emit('updateGame', currentGame);
-                        }
-                    }
-                }, DROP_SPEEDS[currentGame.level]);
+                dropInterval = setInterval(dropPiece, currentGame.dropSpeed);
+            }
+            
+            // Emit level up event
+            if (currentPlayer) {
+                io.to(currentPlayer).emit('levelUp', {
+                    level: currentGame.level,
+                    speed: currentGame.dropSpeed
+                });
             }
         }
     }
@@ -147,6 +138,41 @@ function rotatePiece(piece) {
     return newPiece;
 }
 
+function dropPiece() {
+    if (currentGame.currentPiece) {
+        if (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
+            currentGame.currentY++;
+            io.emit('updateGame', currentGame);
+        } else {
+            freezePiece();
+            clearLines();
+            currentGame.currentPiece = currentGame.nextPiece;
+            currentGame.nextPiece = createPiece();
+            currentGame.currentX = 3;
+            currentGame.currentY = 0;
+            
+            if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
+                if (currentPlayer) {
+                    io.to(currentPlayer).emit('gameEnd', {
+                        score: currentGame.score,
+                        level: currentGame.level,
+                        lines: currentGame.lines
+                    });
+                    currentGame.currentPiece = null;
+                    currentGame.nextPiece = null;
+                    if (dropInterval) {
+                        clearInterval(dropInterval);
+                        dropInterval = null;
+                    }
+                    currentPlayer = null;
+                    updateQueue();
+                }
+            }
+            io.emit('updateGame', currentGame);
+        }
+    }
+}
+
 function startNewGame() {
     currentGame = {
         board: Array(20).fill().map(() => Array(10).fill(0)),
@@ -156,7 +182,8 @@ function startNewGame() {
         currentY: 0,
         score: 0,
         level: 1,
-        lines: 0
+        lines: 0,
+        dropSpeed: DROP_SPEEDS[1]
     };
     
     // Start automatic dropping
@@ -164,36 +191,7 @@ function startNewGame() {
         clearInterval(dropInterval);
     }
     
-    dropInterval = setInterval(() => {
-        if (currentGame.currentPiece) {
-            if (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
-                currentGame.currentY++;
-                io.emit('updateGame', currentGame);
-            } else {
-                freezePiece();
-                clearLines();
-                currentGame.currentPiece = currentGame.nextPiece;
-                currentGame.nextPiece = createPiece();
-                currentGame.currentX = 3;
-                currentGame.currentY = 0;
-                
-                if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
-                    if (currentPlayer) {
-                        io.to(currentPlayer).emit('gameEnd');
-                        currentGame.currentPiece = null;
-                        currentGame.nextPiece = null;
-                        if (dropInterval) {
-                            clearInterval(dropInterval);
-                            dropInterval = null;
-                        }
-                        currentPlayer = null;
-                        updateQueue();
-                    }
-                }
-                io.emit('updateGame', currentGame);
-            }
-        }
-    }, DROP_SPEEDS[currentGame.level]);
+    dropInterval = setInterval(dropPiece, currentGame.dropSpeed);
 }
 
 // Queue system
@@ -313,7 +311,11 @@ io.on('connection', (socket) => {
                     currentGame.currentY = 0;
                     
                     if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
-                        socket.emit('gameEnd');
+                        socket.emit('gameEnd', {
+                            score: currentGame.score,
+                            level: currentGame.level,
+                            lines: currentGame.lines
+                        });
                         currentGame.currentPiece = null;
                         currentGame.nextPiece = null;
                         updateQueue();
@@ -340,7 +342,11 @@ io.on('connection', (socket) => {
                 currentGame.currentY = 0;
                 
                 if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
-                    socket.emit('gameEnd');
+                    socket.emit('gameEnd', {
+                        score: currentGame.score,
+                        level: currentGame.level,
+                        lines: currentGame.lines
+                    });
                     currentGame.currentPiece = null;
                     currentGame.nextPiece = null;
                     updateQueue();

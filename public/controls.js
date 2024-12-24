@@ -7,30 +7,83 @@ document.addEventListener('DOMContentLoaded', () => {
     const REPEAT_RATE = 50;   // ms between repeats
 
     // Elements
+    const waitingScreen = document.getElementById('waiting-screen');
+    const gameElements = document.querySelector('.game-elements');
     const queueCount = document.getElementById('queue-count');
     const queuePosition = document.getElementById('queue-position');
-    const initialPrompt = document.getElementById('initial-prompt');
-    const gameStatus = document.getElementById('game-status');
-    const joinQueueBtn = document.getElementById('join-queue-btn');
-    const showScoresBtn = document.getElementById('show-scores-btn');
+    const scoreElement = document.getElementById('score');
+    const levelElement = document.getElementById('level');
+    const linesElement = document.getElementById('lines');
+    const nextPieceCanvas = document.getElementById('nextPiece');
+    const nextCtx = nextPieceCanvas.getContext('2d');
 
-    // Initial setup
-    if (gameStatus) gameStatus.classList.add('hidden');
+    // Set next piece canvas size
+    const BLOCK_SIZE = 30;
+    nextPieceCanvas.width = 4 * BLOCK_SIZE;
+    nextPieceCanvas.height = 4 * BLOCK_SIZE;
 
-    // Join queue button handler
-    if (joinQueueBtn) {
-        joinQueueBtn.addEventListener('click', () => {
-            if (initialPrompt) initialPrompt.classList.add('hidden');
-            if (gameStatus) gameStatus.classList.remove('hidden');
-            socket.emit('joinQueue');
-        });
+    // Colors for different pieces
+    const colors = {
+        0: '#111',      // Empty cell
+        1: '#00f0f0',   // I piece (cyan)
+        2: '#0000f0',   // J piece (blue)
+        3: '#f0a000',   // L piece (orange)
+        4: '#f0f000',   // O piece (yellow)
+        5: '#00f000',   // S piece (green)
+        6: '#f00000',   // Z piece (red)
+        7: '#a000f0'    // T piece (purple)
+    };
+
+    function showWaitingScreen() {
+        waitingScreen.style.display = 'flex';
+        gameElements.classList.remove('visible');
     }
 
-    // Show scores button handler
-    if (showScoresBtn) {
-        showScoresBtn.addEventListener('click', () => {
-            window.location.href = '/scores.html';
-        });
+    function hideWaitingScreen() {
+        waitingScreen.style.display = 'none';
+        gameElements.classList.add('visible');
+    }
+
+    function drawBlock(x, y, colorIndex) {
+        nextCtx.fillStyle = colors[colorIndex];
+        nextCtx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+        nextCtx.strokeStyle = '#333';
+        nextCtx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    }
+
+    function drawNextPiece(piece) {
+        if (!piece) return;
+
+        // Clear canvas
+        nextCtx.fillStyle = '#111';
+        nextCtx.fillRect(0, 0, nextPieceCanvas.width, nextPieceCanvas.height);
+
+        // Center the piece
+        const xOffset = (4 - piece[0].length) / 2;
+        const yOffset = (4 - piece.length) / 2;
+
+        // Draw piece
+        for (let y = 0; y < piece.length; y++) {
+            for (let x = 0; x < piece[y].length; x++) {
+                if (piece[y][x]) {
+                    drawBlock(xOffset + x, yOffset + y, piece[y][x]);
+                }
+            }
+        }
+    }
+
+    function updateGameInfo(gameState) {
+        if (!gameState) return;
+
+        // Update score and level
+        if (scoreElement) scoreElement.textContent = gameState.score;
+        if (levelElement) levelElement.textContent = gameState.level;
+        if (linesElement) linesElement.textContent = gameState.lines;
+
+        // Draw next piece
+        if (gameState.nextPiece) {
+            drawNextPiece(gameState.nextPiece);
+        }
     }
 
     // Game controls
@@ -162,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Queue handling
+    // Socket events
     socket.on('queueUpdate', (data) => {
         if (queueCount) {
             queueCount.textContent = data.total || 0;
@@ -171,27 +224,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.position === 0) {
                 queuePosition.textContent = 'Žaidžiate!';
                 isPlaying = true;
+                hideWaitingScreen();
             } else {
                 queuePosition.textContent = data.position;
                 isPlaying = false;
+                showWaitingScreen();
             }
         }
     });
 
     socket.on('gameStart', () => {
         isPlaying = true;
-        if (queuePosition) {
-            queuePosition.textContent = 'Žaidžiate!';
+        hideWaitingScreen();
+    });
+
+    socket.on('gameEnd', (data) => {
+        isPlaying = false;
+        showWaitingScreen();
+        stopRepeat();
+        if (data) {
+            alert(`Žaidimas baigtas!\nTaškai: ${data.score}\nLygis: ${data.level}\nEilutės: ${data.lines}`);
         }
     });
 
-    socket.on('gameEnd', () => {
-        isPlaying = false;
-        if (queuePosition) {
-            queuePosition.textContent = '-';
+    socket.on('updateGame', updateGameInfo);
+
+    socket.on('levelUp', (data) => {
+        // Flash level display
+        if (levelElement) {
+            levelElement.style.color = '#fff';
+            setTimeout(() => {
+                levelElement.style.color = '#FFC107';
+            }, 500);
         }
-        stopRepeat();
     });
+
+    // Show waiting screen initially
+    showWaitingScreen();
 
     // Connect to server
     socket.emit('controlsConnect');

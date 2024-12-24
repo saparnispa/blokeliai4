@@ -3,25 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris</title>
+    <title>Tetris - Žaidimas</title>
     <style>
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #000;
+            overflow: hidden;
         }
         canvas {
             border: 2px solid #333;
+            background: #111;
         }
     </style>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/display.js"></script>
 </head>
 <body>
     <canvas id="tetrisCanvas"></canvas>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/display.js"></script>
 </body>
 </html>
