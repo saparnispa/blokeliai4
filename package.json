@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "compression": "^1.7.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
