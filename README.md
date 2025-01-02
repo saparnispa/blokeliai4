@@ -1,64 +1,86 @@
-# Tetris
+# Multiplayer Tetris
 
-Klasikinis Tetris žaidimas su eilės sistema - Classic Tetris game with a queue system.
+Real-time multiplayer Tetris game built with Node.js, Express, and Socket.IO.
 
-## Apie projektą / About
+## Features
 
-Tai yra vieno žaidėjo Tetris žaidimas su eilės sistema. Žaidėjai gali prisijungti prie eilės ir žaisti savo ruožtu.
+- Real-time multiplayer gameplay
+- Player queue system
+- High scores tracking
+- Mobile-friendly controls
+- Dynamic speed progression
+- Multiple difficulty levels
+- Real-time game state synchronization
 
-This is a single-player Tetris game with a queue system. Players can join the queue and take turns playing the game.
+## Game Mechanics
 
-## Technologijos / Technologies
+- Starting speed: 500ms (0.5 seconds)
+- 10 difficulty levels
+- Speed increases with each level
+- Level up every 10 cleared lines
+- Maximum level: 10 (50ms drop speed)
 
-- Node.js (v20.x)
-- Express.js
-- Socket.IO
-- Redis (rezultatų saugojimui / for score persistence)
+## Technical Stack
 
-## Projekto struktūra / Project Structure
+- Backend: Node.js + Express
+- Real-time communication: Socket.IO
+- Frontend: Pure JavaScript, HTML5, CSS3
+- Deployment: Render.com
 
-```
-├── public/                 # Statiniai failai / Static files
-│   ├── controls.html      # Žaidimo valdymo sąsaja / Game controls
-│   ├── display.html       # Žaidimo rodymo sąsaja / Game display
-│   ├── scores.html        # Rezultatų rodymas / High scores
-│   ├── style.css         # Stiliai / Global styles
-│   ├── tetris.js         # Žaidimo logika / Game logic
-│   ├── controls.js       # Valdymo logika / Controls logic
-│   ├── display.js        # Rodymo logika / Display logic
-│   └── scores.js         # Rezultatų logika / Scores logic
-├── server.js             # Serverio failas / Server file
-└── package.json          # Projekto priklausomybės / Dependencies
-```
+## Installation
 
-## Diegimas / Installation
-
-1. Klonuokite repozitoriją / Clone the repository
-2. Įdiekite priklausomybes / Install dependencies:
+1. Clone the repository:
 ```bash
+git clone https://github.com/saparnisp/tetris-one.git
+Install dependencies:
+Code
+CopyInsert
 npm install
-```
-
-## Paleidimas / Running
-
-Paleisti serverį lokaliai / Run the server locally:
-
-```bash
+Start the server:
+Code
+CopyInsert
 npm start
-```
+Open in browser:
+Local development: http://localhost:3019
+Production: https://tetris-one.onrender.com
+Development
+Run with hot-reload:
 
-Serveris pasileis 3000 prievade / Server will start on port 3000 (http://localhost:3000)
+Code
+CopyInsert
+npm run dev
+Controls
+← : Move Left
+→ : Move Right
+↓ : Soft Drop
+↑ : Rotate
+Space : Hard Drop
+Deployment
+The game is automatically deployed to Render.com when changes are pushed to the main branch.
 
-## Žaidimo valdymas / Game Controls
+Live version: https://tetris-one.onrender.com
 
-- ⬅️ Judėti kairėn / Move left
-- ➡️ Judėti dešinėn / Move right
-- ⬇️ Greitai leisti žemyn / Soft drop
-- ⬆️ Pasukti / Rotate
-- Tarpas / Space: Numesti / Hard drop
+License
+MIT License
 
-## Rezultatai / Scores
 
-Geriausi rezultatai saugomi ir rodomi rezultatų puslapyje. Galite juos peržiūrėti paspaudę "Rezultatai" mygtuką.
+$ git add .
 
-High scores are saved and displayed on the scores page. You can view them by clicking the "Scores" button.
+Ran terminal command
+~/Downloads/tetris-main-2
+$ git commit -m Pagreitintas žaidimas:
+- Padidintas pradinis greitis iki 0.5s
+- Pagreitinti visi lygiai
+- Pašalintas index.html
+- Controls.html nustatytas kaip pagrindinis puslapis
+
+
+git add .
+
+git commit -m Pagreitintas žaidimas:
+- Padidintas pradinis greitis iki 0.5s
+- Pagreitinti visi lygiai
+- Pašalintas index.html
+- Controls.html nustatytas kaip pagrindinis puslapis
+
+git push origin master
