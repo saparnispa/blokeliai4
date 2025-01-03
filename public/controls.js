@@ -119,9 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
         'rotate': 'rotate'
     };
 
-    Object.entries(actionMap).forEach(([id, action]) => {
-        const button = document.getElementById(id);
-        if (button) {
+    // Select all buttons with data-action attribute
+    document.querySelectorAll('.btn[data-action]').forEach(button => {
+        const action = actionMap[button.dataset.action];
+        if (action) {
             // Touch events
             button.addEventListener('touchstart', (e) => {
                 e.preventDefault();
