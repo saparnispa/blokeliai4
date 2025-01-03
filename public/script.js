@@ -59,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('connect', () => {
         if (isMobile && !isPlaying && !isProcessingGameOver) {
             socket.emit('joinQueue');
+        } else if (!isMobile) {
+            socket.emit('displayConnect');
         }
     });
 
@@ -97,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileView.classList.add('hidden');
             desktopView.classList.remove('hidden');
             generateQRCode();
+            if (socket.connected) {
+                socket.emit('displayConnect');
+            }
         }
         updateHighScores();
     }
@@ -171,58 +176,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function moveDown() {
-        if (isGameOver) return;
-        
-        if (!collision(0, 1)) {
-            currentY++;
-        } else {
-            freeze();
-            clearLines();
-            if (gameOver()) {
-                endGame();
-                return;
-            }
-            createPiece();
-        }
-        draw();
-    }
-
     function moveLeft() {
-        if (!isGameOver && !collision(-1, 0)) {
-            currentX--;
-            draw();
+        if (isPlaying && !isProcessingGameOver) {
+            socket.emit('gameUpdate', { action: 'moveLeft' });
         }
     }
 
     function moveRight() {
-        if (!isGameOver && !collision(1, 0)) {
-            currentX++;
-            draw();
+        if (isPlaying && !isProcessingGameOver) {
+            socket.emit('gameUpdate', { action: 'moveRight' });
+        }
+    }
+
+    function moveDown() {
+        if (isPlaying && !isProcessingGameOver) {
+            socket.emit('gameUpdate', { action: 'moveDown' });
         }
     }
 
     function rotate() {
-        if (isGameOver) return;
-        
-        const rotated = currentPiece[0].map((_, i) =>
-            currentPiece.map(row => row[i]).reverse()
-        );
-        const rotatedColors = currentPieceColors[0].map((_, i) =>
-            currentPieceColors.map(row => row[i]).reverse()
-        );
-        
-        const prevPiece = currentPiece;
-        const prevColors = currentPieceColors;
-        
-        currentPiece = rotated;
-        currentPieceColors = rotatedColors;
-        
-        if (collision(0, 0)) {
-            currentPiece = prevPiece;
-            currentPieceColors = prevColors;
-        } else {
-            draw();
+        if (isPlaying && !isProcessingGameOver) {
+            socket.emit('gameUpdate', { action: 'rotate' });
+        }
+    }
+
+    function drop() {
+        if (isPlaying && !isProcessingGameOver) {
+            socket.emit('gameUpdate', { action: 'drop' });
         }
     }
 
@@ -301,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
             controlsDiv.classList.add('hidden');
             
             try {
-                // Save score and wait for acknowledgment
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => reject(new Error('Score save timeout')), 5000);
                     
@@ -311,16 +290,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
                 
-                // Immediately redirect to scores page after saving
-                window.location.href = '/scores';
-                
-            } catch (error) {
+                socket.emit('joinQueue');
                 waitingMessage.classList.remove('hidden');
-                waitingMessage.textContent = 'Klaida išsaugant rezultatą. Perkraukite puslapį.';
-            } finally {
-                isProcessingGameOver = false;
+            } catch (error) {
+                console.error('Failed to save score:', error);
+                waitingMessage.textContent = 'Nepavyko išsaugoti rezultato';
+                waitingMessage.classList.remove('hidden');
             }
+        } else {
+            // Desktop view - start auto-replay timer
+            setTimeout(() => {
+                if (!isPlaying && !isProcessingGameOver) {
+                    startGame();
+                }
+            }, 5000);
         }
+        
+        isProcessingGameOver = false;
     }
 
     // Mobile controls
@@ -329,7 +315,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('right-btn').addEventListener('touchstart', moveRight);
         document.getElementById('down-btn').addEventListener('touchstart', moveDown);
         document.getElementById('rotate-btn').addEventListener('touchstart', rotate);
+        document.getElementById('drop-btn').addEventListener('touchstart', drop);
     }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (event) => {
+        if (isMobile) return;
+        
+        switch (event.code) {
+            case 'ArrowLeft':
+                moveLeft();
+                break;
+            case 'ArrowRight':
+                moveRight();
+                break;
+            case 'ArrowDown':
+                moveDown();
+                break;
+            case 'ArrowUp':
+                rotate();
+                break;
+            case 'Space':
+                drop();
+                break;
+        }
+    });
 
     // Socket events
     socket.on('queuePosition', (position) => {
@@ -394,6 +404,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
     }
+
+    // Add replay handler
+    socket.on('replayStart', () => {
+        if (!isMobile) {
+            const replayMessage = document.createElement('div');
+            replayMessage.textContent = 'Rodomas paskutinis žaidimas';
+            replayMessage.classList.add('replay-message');
+            desktopView.appendChild(replayMessage);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                replayMessage.remove();
+            }, 3000);
+        }
+    });
+
+    socket.on('gameEnd', (data) => {
+        if (isMobile) {
+            isGameOver = true;
+            isProcessingGameOver = true;
+            isPlaying = false;
+            
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+            
+            socket.emit('gameEnd', {
+                score: currentScore,
+                lines: data.lines
+            });
+            
+            controlsDiv.classList.add('hidden');
+            waitingMessage.classList.remove('hidden');
+            waitingMessage.textContent = 'Žaidimas baigtas. Jūsų rezultatas: ' + currentScore;
+        }
+    });
+
+    // Update game state handler
+    socket.on('updateGame', (gameState) => {
+        if (!isMobile) {
+            board = gameState.board;
+            currentPiece = gameState.currentPiece;
+            currentX = gameState.currentX;
+            currentY = gameState.currentY;
+            currentScore = gameState.score;
+            currentScoreSpan.textContent = currentScore;
+            draw();
+        }
+    });
 
     // Initialize the game
     init();

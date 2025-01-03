@@ -69,6 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    socket.on('gameEnded', () => {
+        // Notify server we're ready for replay
+        socket.emit('readyForReplay');
+    });
     
     socket.emit('displayConnect');
 });

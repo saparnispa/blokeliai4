@@ -222,29 +222,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (queuePosition) {
             if (data.position === 0) {
-                queuePosition.textContent = 'Žaidžiate!';
-                isPlaying = true;
-                hideWaitingScreen();
+                queuePosition.textContent = 'Jūsų eilė!';
+                document.getElementById('start-button').style.display = 'block';
             } else {
-                queuePosition.textContent = data.position;
-                isPlaying = false;
-                showWaitingScreen();
+                queuePosition.textContent = `${data.position} vieta`;
+                document.getElementById('start-button').style.display = 'none';
             }
         }
     });
 
+    // Handle game start
     socket.on('gameStart', () => {
         isPlaying = true;
         hideWaitingScreen();
+        document.querySelector('.game-elements').style.display = 'block';
+        // Hide start button when game starts
+        document.getElementById('start-button').style.display = 'none';
+    });
+
+    // Handle start button click (only needed when there are other players in queue)
+    document.getElementById('start-button').addEventListener('click', () => {
+        socket.emit('startGame');
+    });
+
+    // Handle ready to start
+    socket.on('readyToStart', () => {
+        document.getElementById('start-container').style.display = 'block';
+        document.getElementById('waiting-text').style.display = 'none';
     });
 
     socket.on('gameEnd', (data) => {
         isPlaying = false;
-        showWaitingScreen();
-        stopRepeat();
+        document.querySelector('.game-elements').style.display = 'none';
         if (data) {
-            alert(`Žaidimas baigtas!\nTaškai: ${data.score}\nLygis: ${data.level}\nEilutės: ${data.lines}`);
+            // Save game data to localStorage before redirecting
+            localStorage.setItem('lastGameData', JSON.stringify({
+                score: data.score,
+                lines: data.lines,
+                level: data.level
+            }));
+            
+            // Disconnect and redirect to main page
+            socket.disconnect();
+            window.location.href = '/';
         }
+    });
+
+    // Handle close button click
+    document.getElementById('closeButton').addEventListener('click', () => {
+        document.getElementById('gameOverScreen').style.display = 'none';
+        window.location.href = '/';
     });
 
     socket.on('updateGame', updateGameInfo);
@@ -259,11 +286,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Show waiting screen initially
-    showWaitingScreen();
-
     // Connect to server
     socket.emit('controlsConnect');
+    
+    // Show waiting screen initially
+    showWaitingScreen();
 
     // Event listeners
     window.addEventListener('keydown', handleKeydown);

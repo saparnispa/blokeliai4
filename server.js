@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 // Port configuration for deployment
-const PORT = process.env.PORT || 3019;
+const PORT = process.env.PORT || 3027;
 
 // Game state
 let currentGame = {
@@ -22,8 +22,229 @@ let currentGame = {
     score: 0,
     level: 1,
     lines: 0,
-    dropSpeed: 500 // Starting speed in milliseconds
+    dropSpeed: 500, // Starting speed in milliseconds
+    lastGameState: null,  // Store the last game state for replay
+    replayTimeout: null,   // Store timeout reference
+    isWaitingForReplay: false
 };
+
+let displaySocket = null;
+let lastGameMoves = null;  // Store all moves of the last game
+let replayInterval = null;
+let replayTimeout = null;
+
+// Record each game move
+function recordGameMove() {
+    if (!lastGameMoves) {
+        lastGameMoves = [];
+    }
+    
+    lastGameMoves.push({
+        board: JSON.parse(JSON.stringify(currentGame.board)),
+        piece: currentGame.currentPiece ? JSON.parse(JSON.stringify(currentGame.currentPiece)) : null,
+        nextPiece: currentGame.nextPiece ? JSON.parse(JSON.stringify(currentGame.nextPiece)) : null,
+        x: currentGame.currentX,
+        y: currentGame.currentY,
+        score: currentGame.score,
+        level: currentGame.level,
+        lines: currentGame.lines
+    });
+}
+
+// Start replay of the last game
+function startReplay() {
+    if (!lastGameMoves || !displaySocket || replayInterval) return;
+    
+    let moveIndex = 0;
+    
+    // Reset game state for replay
+    currentGame.board = Array(20).fill().map(() => Array(10).fill(0));
+    currentGame.score = 0;
+    currentGame.level = 1;
+    currentGame.lines = 0;
+    
+    console.log('Starting replay with', lastGameMoves.length, 'moves');
+    displaySocket.emit('replayStart');
+    
+    replayInterval = setInterval(() => {
+        // Stop replay if a player joins
+        if (currentPlayer) {
+            console.log('Stopping replay - new player joined');
+            clearInterval(replayInterval);
+            replayInterval = null;
+            return;
+        }
+        
+        if (moveIndex >= lastGameMoves.length) {
+            // End of replay, wait 5 seconds and start again
+            console.log('Replay finished, restarting in 5 seconds');
+            clearInterval(replayInterval);
+            replayInterval = null;
+            
+            if (replayTimeout) {
+                clearTimeout(replayTimeout);
+            }
+            
+            replayTimeout = setTimeout(() => {
+                if (!currentPlayer && displaySocket) {  // Only restart if no active player
+                    console.log('Restarting replay');
+                    startReplay();
+                }
+            }, 5000);
+            return;
+        }
+        
+        const move = lastGameMoves[moveIndex];
+        currentGame.board = JSON.parse(JSON.stringify(move.board));
+        currentGame.currentPiece = move.piece ? JSON.parse(JSON.stringify(move.piece)) : null;
+        currentGame.nextPiece = move.nextPiece ? JSON.parse(JSON.stringify(move.nextPiece)) : null;
+        currentGame.currentX = move.x;
+        currentGame.currentY = move.y;
+        currentGame.score = move.score;
+        currentGame.level = move.level;
+        currentGame.lines = move.lines;
+        
+        displaySocket.emit('updateGame', currentGame);
+        moveIndex++;
+    }, 100);  // Update every 100ms for smooth replay
+}
+
+let playerQueue = [];
+let currentPlayer = null;
+
+// High scores
+let scores = [];
+const MAX_SCORES = 100;
+const SCORES_FILE = path.join(__dirname, 'scores.json');
+
+// Load scores from file
+async function loadScores() {
+    try {
+        const data = await fs.readFile(SCORES_FILE, 'utf8');
+        scores = JSON.parse(data).slice(0, MAX_SCORES);
+    } catch (error) {
+        console.error('Error loading scores:', error);
+        scores = [];
+    }
+}
+
+// Save scores to file
+async function saveScores() {
+    try {
+        await fs.writeFile(SCORES_FILE, JSON.stringify(scores));
+    } catch (error) {
+        console.error('Error saving scores:', error);
+    }
+}
+
+// Add new score
+function addScore(score) {
+    const newScore = {
+        points: score.points,
+        lines: score.lines,
+        timestamp: new Date().toISOString()
+    };
+    
+    scores.unshift(newScore);
+    scores = scores.slice(0, MAX_SCORES);
+    saveScores();
+    io.emit('updateHighScores');
+}
+
+// Queue management
+function removePlayer(playerId) {
+    // Remove from queue if present
+    const queueIndex = playerQueue.indexOf(playerId);
+    if (queueIndex > -1) {
+        playerQueue.splice(queueIndex, 1);
+    }
+    
+    // If it's the current player, end their game
+    if (playerId === currentPlayer) {
+        currentPlayer = null;
+        if (dropInterval) {
+            clearInterval(dropInterval);
+            dropInterval = null;
+        }
+        updateQueue();
+    }
+    
+    // If no players left and display is connected, start replay
+    if (playerQueue.length === 0 && !currentPlayer && displaySocket) {
+        if (replayTimeout) {
+            clearTimeout(replayTimeout);
+        }
+        replayTimeout = setTimeout(() => {
+            if (!currentPlayer && displaySocket) {
+                startReplay();
+            }
+        }, 5000);
+    }
+}
+
+function updateQueue() {
+    if (!currentPlayer && playerQueue.length > 0) {
+        // Stop any ongoing replay when new player starts
+        if (replayInterval) {
+            clearInterval(replayInterval);
+            replayInterval = null;
+        }
+        if (replayTimeout) {
+            clearTimeout(replayTimeout);
+            replayTimeout = null;
+        }
+        
+        // Send ready status to first player
+        io.to(playerQueue[0]).emit('queueUpdate', {
+            position: 0,
+            total: playerQueue.length
+        });
+    }
+    
+    // Send queue position to all players
+    playerQueue.forEach((playerId, index) => {
+        if (playerId !== playerQueue[0]) {
+            io.to(playerId).emit('queueUpdate', {
+                position: index + 1,
+                total: playerQueue.length
+            });
+        }
+    });
+    
+    // Send playing status to current player
+    if (currentPlayer) {
+        io.to(currentPlayer).emit('queueUpdate', {
+            position: 0,
+            total: playerQueue.length
+        });
+    }
+}
+
+// Middleware
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression());
+
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/play', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'controls.html'));
+});
+
+app.get('/scores', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'scores.html'));
+});
+
+app.get('/api/scores', async (req, res) => {
+    try {
+        const scores = await loadScores();
+        res.json(scores);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to load scores' });
+    }
+});
 
 // Game intervals
 let dropInterval = null;
@@ -142,6 +363,7 @@ function dropPiece() {
     if (currentGame.currentPiece) {
         if (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
             currentGame.currentY++;
+            recordGameMove();
             io.emit('updateGame', currentGame);
         } else {
             freezePiece();
@@ -183,7 +405,10 @@ function startNewGame() {
         score: 0,
         level: 1,
         lines: 0,
-        dropSpeed: DROP_SPEEDS[1]
+        dropSpeed: DROP_SPEEDS[1],
+        lastGameState: null,  // Store the last game state for replay
+        replayTimeout: null,   // Store timeout reference
+        isWaitingForReplay: false
     };
     
     // Start automatic dropping
@@ -194,97 +419,77 @@ function startNewGame() {
     dropInterval = setInterval(dropPiece, currentGame.dropSpeed);
 }
 
-// Queue system
-let playerQueue = [];
-let currentPlayer = null;
-
-// High scores
-let scores = [];
-const MAX_SCORES = 100;
-const SCORES_FILE = path.join(__dirname, 'scores.json');
-
-// Load scores from file
-async function loadScores() {
-    try {
-        const data = await fs.readFile(SCORES_FILE, 'utf8');
-        scores = JSON.parse(data).slice(0, MAX_SCORES);
-    } catch (error) {
-        console.error('Error loading scores:', error);
-        scores = [];
-    }
-}
-
-// Save scores to file
-async function saveScores() {
-    try {
-        await fs.writeFile(SCORES_FILE, JSON.stringify(scores));
-    } catch (error) {
-        console.error('Error saving scores:', error);
-    }
-}
-
-// Add new score
-function addScore(score) {
-    const newScore = {
-        points: score.points,
-        lines: score.lines,
-        timestamp: new Date().toISOString()
-    };
-    
-    scores.unshift(newScore);
-    scores = scores.slice(0, MAX_SCORES);
-    saveScores();
-    io.emit('updateHighScores');
-}
-
-// Queue management
-function updateQueue() {
-    if (!currentPlayer && playerQueue.length > 0) {
-        currentPlayer = playerQueue.shift();
-        startNewGame(); // Initialize new game when player starts
-        io.to(currentPlayer).emit('gameStart');
-        io.emit('updateGame', currentGame);
-    }
-    
-    // Send queue position to all players
-    playerQueue.forEach((playerId, index) => {
-        io.to(playerId).emit('queueUpdate', {
-            position: index + 1,
-            total: playerQueue.length
-        });
-    });
-    
-    // Send playing status to current player
-    if (currentPlayer) {
-        io.to(currentPlayer).emit('queueUpdate', {
-            position: 0,
-            total: playerQueue.length
-        });
-    }
-}
-
-// Middleware
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'controls.html'));
-});
-
-app.use(compression());
-app.use(express.static('public'));
-
 // Socket connection handling
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
     
     socket.on('displayConnect', () => {
+        console.log('Display connected:', socket.id);
+        displaySocket = socket;
         socket.emit('gameConfig', { rows: 20, cols: 10 });
-        socket.emit('updateGame', currentGame);
+        
+        // If we have recorded moves and no active game, start replay immediately
+        if (lastGameMoves && lastGameMoves.length > 0 && !currentPlayer) {
+            console.log('Starting replay on display connect');
+            // Clear any existing replay
+            if (replayInterval) {
+                clearInterval(replayInterval);
+                replayInterval = null;
+            }
+            if (replayTimeout) {
+                clearTimeout(replayTimeout);
+                replayTimeout = null;
+            }
+            startReplay();
+        }
+        
+        // Handle game ended event
+        socket.on('readyForReplay', () => {
+            if (!currentPlayer && lastGameMoves && lastGameMoves.length > 0) {
+                startReplay();
+            }
+        });
     });
-    
+
     socket.on('controlsConnect', () => {
-        playerQueue.push(socket.id);
-        updateQueue();
+        console.log('Controls connected:', socket.id);
+        // Stop any ongoing replay when new player connects
+        if (replayInterval) {
+            clearInterval(replayInterval);
+            replayInterval = null;
+        }
+        if (replayTimeout) {
+            clearTimeout(replayTimeout);
+            replayTimeout = null;
+        }
+        
+        // Add player to queue if not already in it
+        if (!playerQueue.includes(socket.id)) {
+            playerQueue.push(socket.id);
+            
+            // If there's no current player and this is the only player in queue,
+            // start the game automatically
+            if (!currentPlayer && playerQueue.length === 1) {
+                currentPlayer = playerQueue.shift();
+                startNewGame();
+                io.to(currentPlayer).emit('gameStart');
+            } else {
+                updateQueue();
+            }
+        }
     });
-    
+
+    socket.on('startGame', () => {
+        // Only start if this player is first in queue
+        if (playerQueue[0] === socket.id && !currentPlayer) {
+            currentPlayer = playerQueue.shift();
+            startNewGame();
+            io.to(currentPlayer).emit('gameStart');
+            updateQueue();
+        }
+    });
+
+    // Record moves during the game
     socket.on('gameUpdate', (data) => {
         if (socket.id !== currentPlayer || !currentGame.currentPiece) return;
         
@@ -294,18 +499,21 @@ io.on('connection', (socket) => {
             case 'moveLeft':
                 if (!collision(currentGame.currentPiece, currentGame.currentX - 1, currentGame.currentY)) {
                     currentGame.currentX--;
+                    recordGameMove();
                 }
                 break;
                 
             case 'moveRight':
                 if (!collision(currentGame.currentPiece, currentGame.currentX + 1, currentGame.currentY)) {
                     currentGame.currentX++;
+                    recordGameMove();
                 }
                 break;
                 
             case 'moveDown':
                 if (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
                     currentGame.currentY++;
+                    recordGameMove();
                 } else {
                     freezePiece();
                     clearLines();
@@ -313,6 +521,7 @@ io.on('connection', (socket) => {
                     currentGame.nextPiece = createPiece();
                     currentGame.currentX = 3;
                     currentGame.currentY = 0;
+                    recordGameMove();
                     
                     if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
                         socket.emit('gameEnd', {
@@ -331,12 +540,14 @@ io.on('connection', (socket) => {
                 const rotated = rotatePiece(currentGame.currentPiece);
                 if (!collision(rotated, currentGame.currentX, currentGame.currentY)) {
                     currentGame.currentPiece = rotated;
+                    recordGameMove();
                 }
                 break;
                 
             case 'drop':
                 while (!collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY + 1)) {
                     currentGame.currentY++;
+                    recordGameMove();
                 }
                 freezePiece();
                 clearLines();
@@ -344,6 +555,7 @@ io.on('connection', (socket) => {
                 currentGame.nextPiece = createPiece();
                 currentGame.currentX = 3;
                 currentGame.currentY = 0;
+                recordGameMove();
                 
                 if (collision(currentGame.currentPiece, currentGame.currentX, currentGame.currentY)) {
                     socket.emit('gameEnd', {
@@ -365,37 +577,133 @@ io.on('connection', (socket) => {
             io.emit('updateGame', currentGame);
         }
     });
-    
-    socket.on('gameOver', (finalScore) => {
-        if (socket.id === currentPlayer) {
-            addScore({
+
+    socket.on('gameOver', async (data) => {
+        try {
+            await addScore({
                 points: currentGame.score,
                 lines: currentGame.lines,
                 timestamp: new Date().toISOString()
             });
-            currentPlayer = null;
-            startNewGame();
-            io.emit('updateGame', currentGame);
+            
+            // Reset current game state
+            currentGame.board = Array(20).fill().map(() => Array(10).fill(0));
+            currentGame.currentPiece = null;
+            currentGame.nextPiece = null;
+            currentGame.currentX = 3;
+            currentGame.currentY = 0;
+            currentGame.score = 0;
+            currentGame.level = 1;
+            currentGame.lines = 0;
+            
             updateQueue();
+            io.emit('updateGame', currentGame);
+            
+            // Clear any existing timeouts/intervals
+            if (replayInterval) {
+                clearInterval(replayInterval);
+                replayInterval = null;
+            }
+            if (replayTimeout) {
+                clearTimeout(replayTimeout);
+                replayTimeout = null;
+            }
+            
+            // Start replay after 5 seconds if display is connected and no active player
+            if (displaySocket && !currentPlayer) {
+                console.log('Starting replay in 5 seconds...');
+                replayTimeout = setTimeout(() => {
+                    if (!currentPlayer && displaySocket) {
+                        console.log('Starting replay now');
+                        startReplay();
+                    }
+                }, 5000);
+            }
+            
+        } catch (error) {
+            console.error('Error handling game over:', error);
         }
+    });
+
+    socket.on('gameEnd', async (data) => {
+        if (socket.id === currentPlayer) {
+            try {
+                await addScore({
+                    points: data.score,
+                    lines: data.lines,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Reset current game state
+                currentGame.board = Array(20).fill().map(() => Array(10).fill(0));
+                currentGame.currentPiece = null;
+                currentGame.nextPiece = null;
+                currentGame.currentX = 3;
+                currentGame.currentY = 0;
+                currentGame.score = 0;
+                currentGame.level = 1;
+                currentGame.lines = 0;
+                
+                updateQueue();
+                io.emit('updateGame', currentGame);
+                
+                // Clear any existing timeouts/intervals
+                if (replayInterval) {
+                    clearInterval(replayInterval);
+                    replayInterval = null;
+                }
+                if (replayTimeout) {
+                    clearTimeout(replayTimeout);
+                    replayTimeout = null;
+                }
+                
+                // Start replay after 5 seconds if display is connected and no active player
+                if (displaySocket && !currentPlayer) {
+                    console.log('Starting replay in 5 seconds...');
+                    replayTimeout = setTimeout(() => {
+                        if (!currentPlayer && displaySocket) {
+                            console.log('Starting replay now');
+                            startReplay();
+                        }
+                    }, 5000);
+                }
+                
+            } catch (error) {
+                console.error('Error handling game end:', error);
+            }
+        }
+    });
+
+    socket.on('startGame', () => {
+        // Clear any ongoing replay
+        if (replayInterval) {
+            clearInterval(replayInterval);
+            replayInterval = null;
+        }
+        if (replayTimeout) {
+            clearTimeout(replayTimeout);
+            replayTimeout = null;
+        }
+        
+        // Reset move recording for new game
+        lastGameMoves = [];
+        startNewGame();
     });
     
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
-        if (socket.id === currentPlayer) {
-            if (dropInterval) {
-                clearInterval(dropInterval);
-                dropInterval = null;
+        if (socket.id === displaySocket?.id) {
+            displaySocket = null;
+            if (replayInterval) {
+                clearInterval(replayInterval);
+                replayInterval = null;
             }
-            currentPlayer = null;
-            updateQueue();
-        } else {
-            const index = playerQueue.indexOf(socket.id);
-            if (index > -1) {
-                playerQueue.splice(index, 1);
-                updateQueue();
+            if (replayTimeout) {
+                clearTimeout(replayTimeout);
+                replayTimeout = null;
             }
         }
+        removePlayer(socket.id);
     });
 });
 

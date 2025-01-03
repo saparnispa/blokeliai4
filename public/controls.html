@@ -215,59 +215,101 @@
             opacity: 1;
             pointer-events: auto;
         }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-content {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .menu-button {
+            background: #222;
+            border: none;
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="waiting-screen">
         <h2>Laukiama žaidimo pradžios</h2>
         <p>Žaidėjų eilėje: <span id="queue-count">0</span></p>
-        <p>Jūsų vieta eilėje:</p>
-        <div class="position"><span id="queue-position">-</span></div>
-        <p>Prašome palaukti...</p>
+        <p>Jūsų pozicija: <span id="queue-position">...</span></p>
+        <button id="start-button" class="menu-button" style="display: none;">Pradėti žaidimą</button>
     </div>
 
-    <div class="game-elements">
+    <div id="gameOverScreen" style="display: none;" class="modal">
+        <div class="modal-content">
+            <h2>Žaidimas baigtas!</h2>
+            <p>Taškai: <span id="finalScore">0</span></p>
+            <p>Eilutės: <span id="finalLines">0</span></p>
+            <p>Lygis: <span id="finalLevel">0</span></p>
+            <button id="closeButton" class="menu-button">Grįžti į meniu</button>
+        </div>
+    </div>
+
+    <div class="game-elements" style="display: none;">
         <div class="game-info">
-            <div class="info-item score">
+            <div class="info-item">
                 <div>Taškai</div>
-                <div class="info-value" id="score">0</div>
+                <div id="score" class="info-value">0</div>
             </div>
-            <div class="info-item level">
+            <div class="info-item">
                 <div>Lygis</div>
-                <div class="info-value" id="level">1</div>
+                <div id="level" class="info-value">1</div>
             </div>
-            <div class="info-item lines">
+            <div class="info-item">
                 <div>Eilutės</div>
-                <div class="info-value" id="lines">0</div>
+                <div id="lines" class="info-value">0</div>
             </div>
         </div>
 
         <div class="next-piece-preview">
-            <h3>Sekantis:</h3>
+            <h3>Kita figūra</h3>
             <canvas id="nextPiece" class="next-piece"></canvas>
         </div>
-        
+
         <div class="controls">
             <div class="keyboard-controls">
                 <h2>Klaviatūros valdymas</h2>
                 <ul>
-                    <li>← Kairėn</li>
-                    <li>→ Dešinėn</li>
-                    <li>↓ Žemyn</li>
-                    <li>↑ Pasukti</li>
+                    <li>← → : Judėti į šonus</li>
+                    <li>↓ : Judėti žemyn</li>
+                    <li>↑ : Pasukti figūrą</li>
+                    <li>Spacebar : Numesti figūrą</li>
                 </ul>
             </div>
-            
             <div class="buttons">
-                <button class="btn btn-left" id="left">KAIRĖN</button>
-                <button class="btn btn-right" id="right">DEŠINĖN</button>
-                <button class="btn btn-down" id="down">ŽEMYN</button>
-                <button class="btn btn-rotate" id="rotate">SUKTI</button>
+                <button class="btn btn-rotate" data-action="rotate">Sukti</button>
+                <button class="btn btn-left" data-action="left">Kairėn</button>
+                <button class="btn btn-down" data-action="down">Žemyn</button>
+                <button class="btn btn-right" data-action="right">Dešinėn</button>
             </div>
         </div>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/controls.js"></script>
+    <script src="controls.js"></script>
 </body>
 </html>

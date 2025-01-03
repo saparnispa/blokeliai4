@@ -160,6 +160,123 @@ body {
     text-align: center;
 }
 
+/* Replay Message */
+.replay-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+    font-size: 18px;
+}
+
+/* Main Menu */
+.main-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+}
+
+.main-menu h1 {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    text-shadow: 0 0 10px #00f, 0 0 20px #00f, 0 0 30px #00f;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.menu-button {
+    background-color: #00f;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.menu-button:hover {
+    background-color: #0000cc;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px #00f;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px #00f, 0 0 20px #00f, 0 0 30px #00f;
+    }
+    to {
+        text-shadow: 0 0 20px #00f, 0 0 30px #00f, 0 0 40px #00f;
+    }
+}
+
+/* Game Over Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    padding: 20px;
+    text-align: center;
+}
+
+.modal-content {
+    background: #111;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    max-width: 400px;
+    width: 90%;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content h2 {
+    color: #fff;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00f;
+}
+
+.modal-content p {
+    color: #fff;
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .game-area {
