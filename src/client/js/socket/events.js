@@ -1,5 +1,8 @@
 class SocketHandler {
     constructor(display, controls) {
+        // Clear any previous game state
+        localStorage.removeItem('lastGameData');
+        
         this.socket = io({
             transports: ['websocket', 'polling'],
             reconnection: true,
@@ -9,6 +12,11 @@ class SocketHandler {
         });
         this.display = display;
         this.controls = controls;
+        
+        // Initialize game state
+        this.display.hideGameElements();
+        this.display.showWaitingScreen();
+        
         this.setupEventListeners();
         this.setupErrorHandlers();
         
@@ -103,7 +111,18 @@ class SocketHandler {
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
+            // Clear any game state
+            localStorage.removeItem('lastGameData');
+            
+            // Notify server of disconnection
+            this.socket.emit('forceDisconnect');
+            
+            // Disconnect socket
             this.socket.disconnect();
+            
+            // Ensure game elements are hidden
+            this.display.hideGameElements();
+            this.display.showWaitingScreen();
         });
     }
 

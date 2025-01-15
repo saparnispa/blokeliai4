@@ -79,11 +79,22 @@ npm run dev
 - ↑ : Rotate
 - Space : Hard Drop
 
-## Deployment
+## Deployments
 
-The game is automatically deployed to Render.com when changes are pushed to the main branch.
+The game is automatically deployed to multiple instances on Render.com when changes are pushed to the main branch.
 
-Live version: https://tetris-one.onrender.com
+Live versions:
+- https://tetris-1.onrender.com
+- https://tetris-2.onrender.com
+- https://tetris-3.onrender.com
+- https://tetris-4.onrender.com
+- https://tetris-5.onrender.com
+- https://tetris-6.onrender.com
+- https://tetris-7.onrender.com
+- https://tetris-8.onrender.com
+- https://tetris-9.onrender.com
+
+Each instance runs independently and can be used for different purposes or load balancing.
 
 ## License
 

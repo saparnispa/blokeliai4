@@ -7,7 +7,7 @@ repos=(blokeliai1 blokeliai2 blokeliai3 blokeliai4 blokeliai5 blokeliai6 blokeli
 for repo in "${repos[@]}"
 do
     echo "Pushing updates to $repo..."
-    git push $repo main
+    git push -f $repo main
 done
 
 echo "All updates have been pushed!"

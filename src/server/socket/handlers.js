@@ -82,8 +82,12 @@ async function handleGameOver(result) {
             clearDropInterval();
             io.emit('updateGame', currentGame);
             
-            // Don't automatically add player back to queue or start new game
-            if (getDisplaySocket()) {
+            // Start game for next player in queue
+            const nextPlayer = getNextPlayer();
+            if (nextPlayer) {
+                io.to(nextPlayer).emit('gameStart');
+                startNewGame();
+            } else if (getDisplaySocket()) {
                 scheduleReplay();
             }
             

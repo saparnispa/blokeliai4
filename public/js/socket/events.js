@@ -1,5 +1,8 @@
 class SocketHandler {
     constructor(display, controls) {
+        // Clear any previous game state
+        localStorage.removeItem('lastGameData');
+        
         this.socket = io({
             transports: ['websocket', 'polling'],
             reconnection: true,
@@ -9,30 +12,32 @@ class SocketHandler {
         });
         this.display = display;
         this.controls = controls;
+        
+        // Initialize game state
+        this.display.hideGameElements();
+        this.display.showWaitingScreen();
+        
         this.setupEventListeners();
         this.setupErrorHandlers();
         
-        // Debug transport type
-        this.socket.on('connect', () => {
-            console.log('Connected with transport:', this.socket.io.engine.transport.name);
-        });
-        
-        // Debug transport upgrade
-        this.socket.io.engine.on('upgrade', () => {
-            console.log('Transport upgraded to:', this.socket.io.engine.transport.name);
-        });
+        // Production mode check
+        this.isProduction = window.location.hostname !== 'localhost';
     }
 
     setupErrorHandlers() {
         // Handle connection errors
         this.socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
+            if (!this.isProduction) {
+                console.error('Connection error:', error);
+            }
             this.display.showWaitingScreen();
         });
 
         // Handle disconnection
         this.socket.on('disconnect', (reason) => {
-            console.log('Disconnected:', reason);
+            if (!this.isProduction) {
+                console.log('Disconnected:', reason);
+            }
             this.display.showWaitingScreen();
             if (reason === 'io server disconnect') {
                 setTimeout(() => {
@@ -43,7 +48,9 @@ class SocketHandler {
 
         // Handle successful connection
         this.socket.on('connect', () => {
-            console.log('Connected to server');
+            if (!this.isProduction) {
+                console.log('Connected to server');
+            }
         });
     }
 
@@ -103,7 +110,18 @@ class SocketHandler {
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
+            // Clear any game state
+            localStorage.removeItem('lastGameData');
+            
+            // Notify server of disconnection
+            this.socket.emit('forceDisconnect');
+            
+            // Disconnect socket
             this.socket.disconnect();
+            
+            // Ensure game elements are hidden
+            this.display.hideGameElements();
+            this.display.showWaitingScreen();
         });
     }
 
