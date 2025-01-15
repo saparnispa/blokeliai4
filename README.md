@@ -27,60 +27,69 @@ Real-time multiplayer Tetris game built with Node.js, Express, and Socket.IO.
 - Frontend: Pure JavaScript, HTML5, CSS3
 - Deployment: Render.com
 
+## Multiple Repository Updates
+
+### Push Updates to All Repositories
+
+The project includes two scripts for managing multiple repository updates:
+
+1. `push-updates.sh` - Use this for daily updates:
+```bash
+# First commit your changes
+git add .
+git commit -m "Your commit message"
+
+# Then push to all repositories
+./push-updates.sh
+```
+
+2. `push-all.sh` - Use this only if you need to reconfigure remotes (e.g., new token):
+```bash
+./push-all.sh
+```
+
 ## Installation
 
 1. Clone the repository:
 ```bash
 git clone https://github.com/saparnisp/tetris-one.git
-Install dependencies:
-Code
-CopyInsert
-npm install
-Start the server:
-Code
-CopyInsert
-npm start
-Open in browser:
-Local development: http://localhost:3019
-Production: https://tetris-one.onrender.com
-Development
-Run with hot-reload:
+```
 
-Code
-CopyInsert
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the server:
+```bash
+npm start
+```
+
+4. Open in browser:
+- Local development: http://localhost:3019
+- Production: https://tetris-one.onrender.com
+
+## Development
+
+Run with hot-reload:
+```bash
 npm run dev
-Controls
-← : Move Left
-→ : Move Right
-↓ : Soft Drop
-↑ : Rotate
-Space : Hard Drop
-Deployment
+```
+
+## Controls
+
+- ← : Move Left
+- → : Move Right
+- ↓ : Soft Drop
+- ↑ : Rotate
+- Space : Hard Drop
+
+## Deployment
+
 The game is automatically deployed to Render.com when changes are pushed to the main branch.
 
 Live version: https://tetris-one.onrender.com
 
-License
+## License
+
 MIT License
-
-
-$ git add .
-
-Ran terminal command
-~/Downloads/tetris-main-2
-$ git commit -m Pagreitintas žaidimas:
-- Padidintas pradinis greitis iki 0.5s
-- Pagreitinti visi lygiai
-- Pašalintas index.html
-- Controls.html nustatytas kaip pagrindinis puslapis
-
-
-git add .
-
-git commit -m Pagreitintas žaidimas:
-- Padidintas pradinis greitis iki 0.5s
-- Pagreitinti visi lygiai
-- Pašalintas index.html
-- Controls.html nustatytas kaip pagrindinis puslapis
-
-git push origin master
