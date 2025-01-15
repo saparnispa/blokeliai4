@@ -31,9 +31,9 @@ Real-time multiplayer Tetris game built with Node.js, Express, and Socket.IO.
 
 ### Push Updates to All Repositories
 
-The project includes two scripts for managing multiple repository updates:
+The project includes a script for managing multiple repository updates:
 
-1. `push-updates.sh` - Use this for daily updates:
+`push-updates.sh` - Use this to push changes to all repositories:
 ```bash
 # First commit your changes
 git add .
@@ -41,11 +41,6 @@ git commit -m "Your commit message"
 
 # Then push to all repositories
 ./push-updates.sh
-```
-
-2. `push-all.sh` - Use this only if you need to reconfigure remotes (e.g., new token):
-```bash
-./push-all.sh
 ```
 
 ## Installation
