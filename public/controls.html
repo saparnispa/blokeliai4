@@ -285,6 +285,8 @@
             </div>
         </div>
 
+        <canvas id="gameBoard" style="border: 1px solid #333; background: #111; margin: 20px auto; display: block;"></canvas>
+
         <div class="next-piece-preview">
             <h3>Kita figūra</h3>
             <canvas id="nextPiece" class="next-piece"></canvas>
@@ -297,7 +299,6 @@
                     <li>← → : Judėti į šonus</li>
                     <li>↓ : Judėti žemyn</li>
                     <li>↑ : Pasukti figūrą</li>
-                    <li>Spacebar : Numesti figūrą</li>
                 </ul>
             </div>
             <div class="buttons">
@@ -306,10 +307,20 @@
                 <button class="btn btn-down" data-action="down">Žemyn</button>
                 <button class="btn btn-right" data-action="right">Dešinėn</button>
             </div>
+
+            <style>
+                .buttons {
+                    grid-template-rows: auto auto;
+                }
+                .btn-rotate { grid-column: 2; grid-row: 1; }
+                .btn-left { grid-column: 1; grid-row: 2; }
+                .btn-down { grid-column: 2; grid-row: 2; }
+                .btn-right { grid-column: 3; grid-row: 2; }
+            </style>
         </div>
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
-    <script src="controls.js"></script>
+    <script type="module" src="/js/main.js"></script>
 </body>
 </html>
