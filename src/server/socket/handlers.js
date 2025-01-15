@@ -130,20 +130,15 @@ function handleControlsConnect(socket) {
         }
     }, 30000);
     
-    // If this socket was the current player (e.g. on refresh), remove them first
+    // If this socket was the current player (e.g. on refresh or reconnect)
     if (getCurrentPlayer() === socket.id) {
-        console.log('Current player reconnected - removing from game');
-        removePlayer(socket.id);
-        clearDropInterval();
-        
-        // Get next player and start their game
-        const nextPlayer = getNextPlayer();
-        if (nextPlayer) {
-            io.to(nextPlayer).emit('gameStart');
-            startNewGame();
-        } else if (getDisplaySocket()) {
-            scheduleReplay();
-        }
+        console.log('Current player reconnected:', socket.id);
+        // Update their activity timestamp
+        updateActivity(socket.id);
+        // Send them the current game state
+        io.to(socket.id).emit('gameStart');
+        io.emit('updateGame', currentGame);
+        return;
     }
     
     // Add the socket to queue (will be at the end)
@@ -168,16 +163,7 @@ function handleControlsConnect(socket) {
 }
 
 function handleStartGame(socket) {
-    console.log('Start game requested by:', socket.id);
-    console.log('Current player:', getCurrentPlayer());
-    
-    if (socket.id === getCurrentPlayer()) {
-        console.log('Starting new game...');
-        startNewGame();
-        io.emit('updateGame', currentGame);
-    } else {
-        console.log('Start game request denied - not current player');
-    }
+    console.log('Start game request ignored - games start automatically when reaching front of queue');
 }
 
 function handleGameAction(socket, action) {
