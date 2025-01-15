@@ -24,7 +24,7 @@ function collision(piece, board, x, y) {
             if (piece[row][col]) {
                 const newX = x + col;
                 const newY = y + row;
-                if (newX < 0 || newX >= 10 || newY >= 20) return true;
+                if (newX < 0 || newX >= 10 || newY >= 35) return true;
                 if (newY >= 0 && board[newY][newX]) return true;
             }
         }

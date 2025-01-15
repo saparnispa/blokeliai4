@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const BLOCK_SIZE = 30;
     canvas.width = 10 * BLOCK_SIZE;  // 10 columns
-    canvas.height = 20 * BLOCK_SIZE; // 20 rows
+    canvas.height = 35 * BLOCK_SIZE; // 20 rows
     
     // Colors for different pieces
     const colors = {

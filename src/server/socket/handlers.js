@@ -100,7 +100,7 @@ async function handleGameOver(result) {
 function handleDisplayConnect(socket) {
     console.log('Display connected:', socket.id);
     setDisplaySocket(socket);
-    socket.emit('gameConfig', { rows: 20, cols: 10 });
+    socket.emit('gameConfig', { rows: 35, cols: 10 });
     
     if (!getCurrentPlayer()) {
         startReplay();

@@ -22,7 +22,7 @@ function startReplay() {
     let moveIndex = 0;
     
     // Reset game state for replay
-    currentGame.board = Array(20).fill().map(() => Array(10).fill(0));
+    currentGame.board = Array(35).fill().map(() => Array(10).fill(0));
     currentGame.score = 0;
     currentGame.level = 1;
     currentGame.lines = 0;

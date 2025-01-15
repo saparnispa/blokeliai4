@@ -38,7 +38,7 @@ class GameDisplay {
         
         if (this.boardCanvas) {
             this.boardCanvas.width = 10 * BLOCK_SIZE;  // Standard Tetris board width
-            this.boardCanvas.height = 20 * BLOCK_SIZE; // Standard Tetris board height
+            this.boardCanvas.height = 35 * BLOCK_SIZE; // Extended Tetris board height
             
             // Initialize with empty board
             this.boardCtx.fillStyle = colors[0];
