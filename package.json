@@ -5,11 +5,9 @@
   "main": "src/server/index.js",
   "type": "module",
   "scripts": {
-    "prestart": "npm run build",
     "start": "node src/server/index.js",
-    "build": "mkdir -p public/js && cp -r src/client/js/* public/js/",
-    "dev": "nodemon src/server/index.js",
-    "postinstall": "npm run build"
+    "build": "mkdir -p public/js && cp -r src/client/js/* public/js/ || true",
+    "dev": "nodemon src/server/index.js"
   },
   "engines": {
     "node": "18.18.0"

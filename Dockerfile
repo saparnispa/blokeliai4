@@ -1,12 +1,11 @@
-FROM node:18-slim
+FROM node:18.18.0-slim
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --production
 
 COPY . .
-RUN npm run build
 
-EXPOSE 8080
+EXPOSE 10000
 CMD ["npm", "start"]
