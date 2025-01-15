@@ -1,13 +1,26 @@
 class SocketHandler {
     constructor(display, controls) {
         this.socket = io({
-            reconnection: false, // Disable reconnection to ensure clean disconnect on refresh
-            timeout: 20000
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            timeout: 10000
         });
         this.display = display;
         this.controls = controls;
         this.setupEventListeners();
         this.setupErrorHandlers();
+        
+        // Debug transport type
+        this.socket.on('connect', () => {
+            console.log('Connected with transport:', this.socket.io.engine.transport.name);
+        });
+        
+        // Debug transport upgrade
+        this.socket.io.engine.on('upgrade', () => {
+            console.log('Transport upgraded to:', this.socket.io.engine.transport.name);
+        });
     }
 
     setupErrorHandlers() {
@@ -21,8 +34,16 @@ class SocketHandler {
         this.socket.on('disconnect', (reason) => {
             console.log('Disconnected:', reason);
             this.display.showWaitingScreen();
-            // Prevent any reconnection attempts
-            this.socket.disconnect();
+            if (reason === 'io server disconnect') {
+                setTimeout(() => {
+                    this.socket.connect();
+                }, 1000);
+            }
+        });
+
+        // Handle successful connection
+        this.socket.on('connect', () => {
+            console.log('Connected to server');
         });
     }
 

@@ -1,4 +1,3 @@
-
 import http from 'http';
 import { Server } from 'socket.io';
 import { app, PORT, initializeApp } from './app.js';
@@ -16,12 +15,21 @@ import {
 // Create HTTP server
 const server = http.createServer(app);
 const io = new Server(server, {
-    pingTimeout: 60000,
-    pingInterval: 25000,
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    transports: ['websocket', 'polling'],
+    pingTimeout: 30000,
+    pingInterval: 10000
+});
+
+// Debug Socket.IO events
+io.engine.on("connection_error", (err) => {
+    console.log("Connection error:", err.req);      // the request object
+    console.log("Error message:", err.code);     // the error code, for example 1
+    console.log("Error message:", err.message);  // the error message, for example "Session ID unknown"
+    console.log("Error context:", err.context);  // some additional error context
 });
 
 // Initialize socket handlers
@@ -34,7 +42,6 @@ io.on('connection', (socket) => {
     // Handle socket errors
     socket.on('error', (error) => {
         console.error('Socket error:', error);
-        socket.disconnect();
     });
     
     // Setup event handlers with error catching
