@@ -2,12 +2,12 @@
   "name": "tetris-multiplayer",
   "version": "1.0.0",
   "description": "Multiplayer Tetris game",
-  "main": "server.js",
+  "main": "src/server/index.js",
   "type": "module",
   "scripts": {
     "prestart": "npm run build",
-    "start": "node server.js",
-    "build": "mkdir -p public/js && cp -r src/client/js/* public/js/ && cp src/server/index.js server.js",
+    "start": "node src/server/index.js",
+    "build": "mkdir -p public/js && cp -r src/client/js/* public/js/",
     "dev": "nodemon src/server/index.js"
   },
   "engines": {

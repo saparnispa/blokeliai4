@@ -3,7 +3,7 @@ services:
     name: tetris-multiplayer
     env: node
     buildCommand: npm install && npm run build
-    startCommand: node server.js
+    startCommand: node src/server/index.js
     envVars:
       - key: NODE_ENV
         value: production
