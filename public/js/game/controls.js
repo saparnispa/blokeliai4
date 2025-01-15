@@ -6,7 +6,9 @@ let touchStartTime = 0;
 let repeatInterval = null;
 let keyState = {};
 
-function initControls(socket) {
+function initControls(initialSocket) {
+    let socket = initialSocket;
+    
     // Action mapping for buttons
     const actionMap = {
         'left': 'moveLeft',
@@ -16,7 +18,7 @@ function initControls(socket) {
     };
 
     function sendAction(action) {
-        if (!isPlaying) return;
+        if (!isPlaying || !socket) return;
         socket.emit('gameUpdate', { action });
     }
 
@@ -156,6 +158,9 @@ function initControls(socket) {
             window.removeEventListener('keydown', handleKeydown);
             window.removeEventListener('keyup', handleKeyup);
             stopRepeat();
+        },
+        set socket(newSocket) {
+            socket = newSocket;
         }
     };
 }

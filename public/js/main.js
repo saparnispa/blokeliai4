@@ -5,11 +5,11 @@ import { SocketHandler } from './socket/events.js';
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize game components
     const display = new GameDisplay();
-    const socketHandler = new SocketHandler(display);
-    const controls = initControls(socketHandler.getSocket());
+    const controls = initControls(null); // Initialize controls first
+    const socketHandler = new SocketHandler(display, controls); // Pass both display and controls
     
-    // Update socket handler with controls
-    socketHandler.controls = controls;
+    // Update controls with socket
+    controls.socket = socketHandler.getSocket();
     
     // Connect to server as controls
     socketHandler.connectAsControls();

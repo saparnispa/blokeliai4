@@ -21,13 +21,28 @@ class GameDisplay {
         this.scoreElement = document.getElementById('score');
         this.levelElement = document.getElementById('level');
         this.linesElement = document.getElementById('lines');
+        
+        // Main game board canvas
+        this.boardCanvas = document.getElementById('gameBoard');
+        this.boardCtx = this.boardCanvas?.getContext('2d');
+        
+        // Next piece preview canvas
         this.nextPieceCanvas = document.getElementById('nextPiece');
         this.nextCtx = this.nextPieceCanvas?.getContext('2d');
 
-        // Set next piece canvas size if it exists
+        // Set canvas sizes
         if (this.nextPieceCanvas) {
             this.nextPieceCanvas.width = 4 * BLOCK_SIZE;
             this.nextPieceCanvas.height = 4 * BLOCK_SIZE;
+        }
+        
+        if (this.boardCanvas) {
+            this.boardCanvas.width = 10 * BLOCK_SIZE;  // Standard Tetris board width
+            this.boardCanvas.height = 20 * BLOCK_SIZE; // Standard Tetris board height
+            
+            // Initialize with empty board
+            this.boardCtx.fillStyle = colors[0];
+            this.boardCtx.fillRect(0, 0, this.boardCanvas.width, this.boardCanvas.height);
         }
     }
 
@@ -79,6 +94,57 @@ class GameDisplay {
         }
     }
 
+    drawBoard(board) {
+        if (!this.boardCtx) return;
+
+        // Clear the board
+        this.boardCtx.fillStyle = colors[0];
+        this.boardCtx.fillRect(0, 0, this.boardCanvas.width, this.boardCanvas.height);
+
+        // Draw the board state
+        for (let y = 0; y < board.length; y++) {
+            for (let x = 0; x < board[y].length; x++) {
+                const colorIndex = board[y][x];
+                if (colorIndex !== 0) {
+                    this.drawBoardBlock(x, y, colorIndex);
+                }
+            }
+        }
+    }
+
+    drawBoardBlock(x, y, colorIndex) {
+        if (!this.boardCtx) return;
+
+        this.boardCtx.fillStyle = colors[colorIndex];
+        this.boardCtx.fillRect(
+            x * BLOCK_SIZE,
+            y * BLOCK_SIZE,
+            BLOCK_SIZE - 1,
+            BLOCK_SIZE - 1
+        );
+        
+        // Add block border
+        this.boardCtx.strokeStyle = '#333';
+        this.boardCtx.strokeRect(
+            x * BLOCK_SIZE,
+            y * BLOCK_SIZE,
+            BLOCK_SIZE,
+            BLOCK_SIZE
+        );
+    }
+
+    drawCurrentPiece(piece, x, y) {
+        if (!this.boardCtx) return;
+
+        for (let py = 0; py < piece.length; py++) {
+            for (let px = 0; px < piece[py].length; px++) {
+                if (piece[py][px] !== 0) {
+                    this.drawBoardBlock(x + px, y + py, piece[py][px]);
+                }
+            }
+        }
+    }
+
     updateGameInfo(gameState) {
         if (!gameState) return;
 
@@ -91,6 +157,20 @@ class GameDisplay {
         }
         if (this.linesElement) {
             this.linesElement.textContent = gameState.lines;
+        }
+
+        // Draw game board
+        if (gameState.board) {
+            this.drawBoard(gameState.board);
+        }
+
+        // Draw current piece
+        if (gameState.currentPiece && gameState.currentPiecePosition) {
+            this.drawCurrentPiece(
+                gameState.currentPiece,
+                gameState.currentPiecePosition.x,
+                gameState.currentPiecePosition.y
+            );
         }
 
         // Draw next piece
@@ -127,7 +207,6 @@ class GameDisplay {
         if (this.gameElements) {
             this.gameElements.style.display = 'block';
         }
-        document.getElementById('start-button')?.style.setProperty('display', 'none');
     }
 
     hideGameElements() {
