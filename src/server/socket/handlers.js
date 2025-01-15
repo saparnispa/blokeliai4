@@ -11,7 +11,8 @@ import {
     getDisplaySocket,
     getCurrentPlayer,
     clearCurrentPlayer,
-    getAllQueueStatuses
+    getAllQueueStatuses,
+    updateActivity
 } from '../game/queue.js';
 import { startReplay, clearReplayTimers, scheduleReplay } from '../game/replay.js';
 
@@ -110,6 +111,24 @@ function handleDisplayConnect(socket) {
 function handleControlsConnect(socket) {
     console.log('Controls connected:', socket.id);
     clearReplayTimers();
+    
+    // Set up ping/pong for connection health
+    socket.lastPing = Date.now();
+    socket.on('pong', () => {
+        socket.lastPing = Date.now();
+        updateActivity(socket.id);
+    });
+    
+    // Check connection every 30 seconds
+    const pingInterval = setInterval(() => {
+        if (Date.now() - socket.lastPing > 60000) { // 60 seconds since last ping
+            console.log('Player timed out:', socket.id);
+            socket.disconnect(true);
+            clearInterval(pingInterval);
+        } else {
+            socket.emit('ping');
+        }
+    }, 30000);
     
     // If this socket was the current player (e.g. on refresh), remove them first
     if (getCurrentPlayer() === socket.id) {

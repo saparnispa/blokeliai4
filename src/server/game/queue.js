@@ -1,13 +1,40 @@
 let playerQueue = [];
 let currentPlayer = null;
 let displaySocket = null;
+const playerActivity = new Map();
 
 function addToQueue(playerId) {
     if (!playerQueue.includes(playerId)) {
         playerQueue.push(playerId);
+        playerActivity.set(playerId, Date.now());
         return true;
     }
     return false;
+}
+
+function updateActivity(playerId) {
+    if (playerQueue.includes(playerId) || playerId === currentPlayer) {
+        playerActivity.set(playerId, Date.now());
+    }
+}
+
+function cleanupInactivePlayers() {
+    const now = Date.now();
+    const inactiveThreshold = 60000; // 60 seconds
+    
+    // Check current player
+    if (currentPlayer && now - playerActivity.get(currentPlayer) > inactiveThreshold) {
+        removePlayer(currentPlayer);
+    }
+    
+    // Check queued players
+    playerQueue = playerQueue.filter(playerId => {
+        if (now - playerActivity.get(playerId) > inactiveThreshold) {
+            playerActivity.delete(playerId);
+            return false;
+        }
+        return true;
+    });
 }
 
 function removeFromQueue(playerId) {
@@ -103,6 +130,9 @@ function getAllQueueStatuses() {
     return statuses;
 }
 
+// Start cleanup interval
+setInterval(cleanupInactivePlayers, 30000); // Check every 30 seconds
+
 export {
     addToQueue,
     removeFromQueue,
@@ -114,5 +144,7 @@ export {
     getCurrentPlayer,
     clearCurrentPlayer,
     getQueueLength,
-    getAllQueueStatuses
+    getAllQueueStatuses,
+    updateActivity,
+    cleanupInactivePlayers
 };
