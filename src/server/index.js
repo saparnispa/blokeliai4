@@ -1,6 +1,6 @@
 import http from 'http';
 import { Server } from 'socket.io';
-import { app, PORT, initializeApp } from './app.js';
+import { app, initializeApp } from './app.js';
 import { loadScores } from './game/scores.js';
 import {
     initializeHandlers,
@@ -87,6 +87,7 @@ async function startServer() {
         await initializeApp();
         await loadScores();
         
+        const PORT = process.env.PORT || 3000;
         return new Promise((resolve, reject) => {
             server.on('error', (error) => {
                 if (error.code === 'EADDRINUSE') {
