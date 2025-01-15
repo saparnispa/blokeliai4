@@ -13,7 +13,7 @@ const __dirname = dirname(__filename);
 const app = express();
 
 // Port configuration for deployment
-const PORT = process.env.PORT || 3027;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.static(path.join(__dirname, '..', '..', 'public')));

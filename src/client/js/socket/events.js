@@ -74,7 +74,6 @@ class SocketHandler {
         this.socket.on('gameEnd', (data) => {
             this.controls.setPlaying(false);
             this.display.hideGameElements();
-            this.display.showWaitingScreen();
             
             if (data) {
                 // Save game data to localStorage
@@ -83,6 +82,11 @@ class SocketHandler {
                     lines: data.lines,
                     level: data.level
                 }));
+                
+                // Use setTimeout to ensure game state is saved before redirect
+                setTimeout(() => {
+                    window.location.replace('http://blokeliai.site');
+                }, 100);
             }
         });
 

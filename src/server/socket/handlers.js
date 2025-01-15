@@ -78,18 +78,12 @@ async function handleGameOver(result) {
                 timestamp: new Date().toISOString()
             });
             
-            // Add current player back to queue before clearing
-            addToQueue(currentPlayerId);
             clearCurrentPlayer();
             clearDropInterval();
             io.emit('updateGame', currentGame);
             
-            // Get next player or schedule replay
-            const nextPlayer = getNextPlayer();
-            if (nextPlayer) {
-                io.to(nextPlayer).emit('gameStart');
-                startNewGame(); // Reset and start game for next player
-            } else if (getDisplaySocket()) {
+            // Don't automatically add player back to queue or start new game
+            if (getDisplaySocket()) {
                 scheduleReplay();
             }
             
