@@ -29,7 +29,7 @@ Real-time multiplayer Tetris game built with Node.js, Express, and Socket.IO.
 
 ## Multiple Repository Updates
 
-### Push Updates to All Repositories
+### Push Updates to All Repositorie
 
 The project includes a script for managing multiple repository updates:
 
