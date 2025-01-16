@@ -12,7 +12,6 @@ import {
     getCurrentPlayer,
     clearCurrentPlayer,
     getAllQueueStatuses,
-    updateActivity
 } from '../game/queue.js';
 import { startReplay, clearReplayTimers, scheduleReplay } from '../game/replay.js';
 
@@ -112,29 +111,9 @@ function handleControlsConnect(socket) {
     console.log('Controls connected:', socket.id);
     clearReplayTimers();
     
-    // Set up ping/pong for connection health
-    socket.lastPing = Date.now();
-    socket.on('pong', () => {
-        socket.lastPing = Date.now();
-        updateActivity(socket.id);
-    });
-    
-    // Check connection every 30 seconds
-    const pingInterval = setInterval(() => {
-        if (Date.now() - socket.lastPing > 60000) { // 60 seconds since last ping
-            console.log('Player timed out:', socket.id);
-            socket.disconnect(true);
-            clearInterval(pingInterval);
-        } else {
-            socket.emit('ping');
-        }
-    }, 30000);
-    
     // If this socket was the current player (e.g. on refresh or reconnect)
     if (getCurrentPlayer() === socket.id) {
         console.log('Current player reconnected:', socket.id);
-        // Update their activity timestamp
-        updateActivity(socket.id);
         // Send them the current game state
         io.to(socket.id).emit('gameStart');
         io.emit('updateGame', currentGame);
