@@ -206,13 +206,14 @@ function handleDisconnect(socket) {
             io.to(playerId).emit('queueUpdate', status);
         });
         
-        // Get next player or schedule replay
+        // Get next player or start replay immediately
         const nextPlayer = getNextPlayer();
         if (nextPlayer) {
             io.to(nextPlayer).emit('gameStart');
             startNewGame(); // Reset and start game for next player
         } else if (getDisplaySocket()) {
-            scheduleReplay();
+            // If display is connected and no players left, start replay immediately
+            startReplay();
         }
     }
 }
